@@ -116,6 +116,7 @@ gemini-extension.json      Gemini CLI manifest (inlines its own MCP block)
 .cursor-plugin/            Cursor manifest
 .codex-plugin/             Codex manifest
 .agents/plugins/           Codex marketplace index
+.github/plugin/            Copilot CLI + VS Code manifest
 assets/                    logo
 ```
 

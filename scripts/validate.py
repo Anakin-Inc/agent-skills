@@ -139,6 +139,7 @@ def check_manifests_agree() -> None:
             ".grok-plugin/plugin.json",
             ".cursor-plugin/plugin.json",
             ".codex-plugin/plugin.json",
+            ".github/plugin/plugin.json",
             "gemini-extension.json",
         )
     }
