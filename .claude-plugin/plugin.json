@@ -1,0 +1,13 @@
+{
+  "name": "anakin",
+  "version": "0.1.0",
+  "description": "Anakin web data platform (MCP Server + Skills). Scrape pages to markdown, map and crawl sites, run AI search and deep research, and execute pre-built Wire automations across hundreds of popular websites.",
+  "author": {
+    "name": "Anakin",
+    "url": "https://anakin.io"
+  },
+  "homepage": "https://anakin.io",
+  "repository": "https://github.com/Anakin-Inc/agent-skills",
+  "license": "Apache-2.0",
+  "keywords": ["anakin", "anakin.io", "anakin wire", "wire action", "anakin scrape"]
+}

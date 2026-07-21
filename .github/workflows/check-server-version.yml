@@ -1,0 +1,45 @@
+name: check-server-version
+
+# The plugin pins an exact @anakin-io/mcp version so upgrades are deliberate.
+# This job is the counterweight: it notices when the pin falls behind npm and
+# files an issue, so pinning never silently becomes staleness.
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Mondays, 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compare pinned version against npm
+        id: check
+        continue-on-error: true
+        run: python3 scripts/check-server-version.py
+
+      - name: Open tracking issue
+        if: steps.check.outputs.outdated == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: "Server update available: @anakin-io/mcp ${{ steps.check.outputs.latest }}"
+        run: |
+          # Exact title match rather than --search: GitHub's search tokenizes
+          # "@anakin-io/mcp" unpredictably, which would file a duplicate issue
+          # on every scheduled run.
+          existing=$(gh issue list --state open --limit 100 --json number,title \
+            | jq -r --arg t "$TITLE" '.[] | select(.title == $t) | .number' | head -1)
+          if [ -n "$existing" ]; then
+            echo "Issue #$existing already tracks this version; nothing to do."
+            exit 0
+          fi
+          gh issue create --title "$TITLE" --body-file .issue-body.md
