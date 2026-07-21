@@ -26,6 +26,12 @@ Browse the plugin marketplace and install `anakin`.
 /add-plugin anakin
 ```
 
+### Gemini CLI
+
+```
+gemini extensions install https://github.com/Anakin-Inc/agent-skills
+```
+
 ### Any MCP client
 
 The skills wrap the published MCP server, which works standalone:
@@ -59,19 +65,21 @@ loudly at startup beats failing confusingly mid-task.
 ## What's included
 
 **MCP server** — [`@anakin-io/mcp`](https://github.com/Anakin-Inc/anakin-mcp),
-eleven tools over `api.anakin.io`.
+twenty-one tools over `api.anakin.io`.
 
 **Skills** — guidance on choosing and sequencing those tools:
 
 | Skill | Covers |
 |---|---|
 | `anakin-web-data` | `scrape`, `map`, `crawl` — fetching pages and sites |
-| `anakin-research` | `search`, `agentic_search` — finding and synthesizing |
-| `anakin-wire` | the `wire_*` family — pre-built actions on known sites |
+| `anakin-research` | `search`, `agentic_search`, `ai_visibility_*` — finding, synthesizing, and comparing AI answers |
+| `anakin-wire` | the `wire_*` family — pre-built read and write actions on known sites |
+| `anakin-monitoring` | `monitor_*` — scheduled change detection with alerts |
+| `anakin-browser` | `browser_task`, `session_*` — driving a real browser and reusing login state |
 
 ## Versioning
 
-The plugin pins an exact MCP server version (`@anakin-io/mcp@0.1.5`) rather than
+The plugin pins an exact MCP server version (`@anakin-io/mcp@0.2.0`) rather than
 tracking `@latest`.
 
 Marketplaces install this repository at a frozen commit SHA. A floating npm tag
@@ -95,6 +103,7 @@ not mean nobody notices there is something to upgrade to.
 skills/                    source of truth for all platforms
 .mcp.json                  MCP server definition (Claude, Grok)
 mcp.json                   MCP server definition (Cursor)
+gemini-extension.json      Gemini CLI manifest (inlines its own MCP block)
 .claude-plugin/            Claude Code plugin + marketplace manifests
 .grok-plugin/              Grok manifest
 .cursor-plugin/            Cursor manifest

@@ -94,11 +94,20 @@ To upgrade:
 4. Release, then re-pin the new commit SHA in each marketplace
 """
 
-DOCUMENTED_TOOLS = [
-    "scrape", "search", "map", "crawl", "agentic_search",
-    "wire_discover", "wire_catalog", "wire_action",
-    "wire_identities", "wire_login", "wire_build",
-]
+def documented_tools() -> list[str]:
+    """Single source of truth: the TOOLS list in validate.py.
+
+    Duplicating the inventory here is how it goes stale, which is the exact
+    failure this issue is meant to surface.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "_validate", ROOT / "scripts" / "validate.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return list(module.TOOLS)
 
 
 def write_issue_body(current: str, latest: str) -> Path:
@@ -107,13 +116,14 @@ def write_issue_body(current: str, latest: str) -> Path:
     Generated here rather than in shell so backticks, quotes and backslashes in
     the reproduction command survive intact.
     """
+    tools = documented_tools()
     path = ROOT / ".issue-body.md"
     path.write_text(
         ISSUE_BODY.format(
             current=current,
             latest=latest,
-            tool_count=len(DOCUMENTED_TOOLS),
-            tool_list="\n".join(f"- `{t}`" for t in DOCUMENTED_TOOLS),
+            tool_count=len(tools),
+            tool_list="\n".join(f"- `{t}`" for t in tools),
         )
     )
     return path

@@ -8,7 +8,7 @@
     {
       "name": "anakin",
       "source": "./",
-      "description": "Anakin web data platform (MCP Server + Skills). Scrape pages to markdown, map and crawl sites, run AI search and deep research, and execute pre-built Wire automations across hundreds of popular websites.",
+      "description": "Anakin web data platform (MCP Server + Skills). Scrape pages to markdown, map and crawl sites, run AI search and deep research, execute pre-built Wire actions across hundreds of popular websites, monitor pages for changes, compare AI answer engines, and drive a real cloud browser with natural language.",
       "category": "web",
       "homepage": "https://anakin.io",
       "keywords": ["anakin", "anakin.io", "anakin wire", "wire action", "anakin scrape"]

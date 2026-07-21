@@ -7,8 +7,8 @@ description: Use when fetching content from the web with Anakin — reading a pa
 
 ## Pick the right tool first
 
-Anakin has eleven tools across three groups. Choosing wrong is the most common
-and most expensive mistake — check this table before calling anything.
+Anakin has twenty-one tools across five groups. Choosing wrong is the most
+common and most expensive mistake — check this table before calling anything.
 
 | The task | Tool | Skill |
 |---|---|---|
@@ -17,14 +17,22 @@ and most expensive mistake — check this table before calling anything.
 | Collect many pages from one site | `crawl` | this one |
 | Find pages across the web for a query | `search` | `anakin-research` |
 | Answer a question needing many sources | `agentic_search` | `anakin-research` |
-| Get structured data from a *specific popular site* | `wire_discover` → `wire_action` | `anakin-wire` |
-| Log in, check out, submit a form | `wire_discover` → `wire_action` | `anakin-wire` |
+| See what AI engines say about something | `ai_visibility_search` | `anakin-research` |
+| Extract data from a *specific popular site* | `wire_discover` → `wire_read_action` | `anakin-wire` |
+| Submit a form, add to cart, post content | `wire_discover` → `wire_write_action` | `anakin-wire` |
+| Watch a page for changes over time | `monitor_create` | `anakin-monitoring` |
+| Multi-step interaction no Wire action covers | `browser_task` | `anakin-browser` |
+| Reach login-protected content | `session_list` → pass `sessionId` | `anakin-browser` |
 
 **Check Wire before reaching for `scrape` or `crawl` on a well-known site.**
 Amazon, Walmart, LinkedIn, Airbnb, Zillow and hundreds more have vetted,
 pre-built extractors that return clean structured data in one call. Scraping
 those sites by hand is slower, costs more, and gives you markdown you then have
 to parse. See the `anakin-wire` skill.
+
+**Escalate in cost order.** `scrape` → `scrape` with `useBrowser` → a Wire
+action → `browser_task`. Each step is slower and more expensive than the last;
+do not start at the end.
 
 ## scrape — one URL to markdown
 

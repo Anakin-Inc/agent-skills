@@ -2,7 +2,10 @@
   "mcpServers": {
     "anakin": {
       "command": "npx",
-      "args": ["-y", "@anakin-io/mcp@0.1.5"]
+      "args": [
+        "-y",
+        "@anakin-io/mcp@0.2.0"
+      ]
     }
   }
 }

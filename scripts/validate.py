@@ -29,6 +29,11 @@ CURSOR_SCHEMA_URL = (
     "https://raw.githubusercontent.com/cursor/plugins/main/schemas/plugin.schema.json"
 )
 
+# Every file that inlines an mcpServers block. The platforms disagree on the
+# filename and shape, so the same config is spelled three ways and must not
+# drift between them.
+MCP_CONFIG_FILES = (".mcp.json", "mcp.json", "gemini-extension.json")
+
 errors: list[str] = []
 
 
@@ -57,6 +62,16 @@ def check_mcp_in_sync() -> None:
         err(".mcp.json and mcp.json have drifted — contents must be identical")
 
 
+def check_gemini_matches() -> None:
+    """The Gemini manifest inlines its own mcpServers block; keep it identical."""
+    base = load_json(".mcp.json")
+    gem = load_json("gemini-extension.json")
+    if not base or not gem:
+        return
+    if gem.get("mcpServers") != base.get("mcpServers"):
+        err("gemini-extension.json: mcpServers block differs from .mcp.json")
+
+
 def check_server_version_pinned() -> None:
     """The MCP server must be pinned to an exact version.
 
@@ -66,7 +81,7 @@ def check_server_version_pinned() -> None:
     would break already-installed users with no plugin release. Bumping the
     version is a deliberate, reviewable edit.
     """
-    for rel in (".mcp.json", "mcp.json"):
+    for rel in MCP_CONFIG_FILES:
         config = load_json(rel)
         if not config:
             continue
@@ -102,7 +117,7 @@ def check_no_env_placeholders() -> None:
     or empty key makes it exit immediately with a message naming the variable
     and where to get one, which is the failure mode we want.
     """
-    for rel in (".mcp.json", "mcp.json"):
+    for rel in MCP_CONFIG_FILES:
         config = load_json(rel)
         if not config:
             continue
@@ -123,6 +138,7 @@ def check_manifests_agree() -> None:
             ".claude-plugin/plugin.json",
             ".grok-plugin/plugin.json",
             ".cursor-plugin/plugin.json",
+            "gemini-extension.json",
         )
     }
     present = {k: v for k, v in manifests.items() if v}
@@ -172,6 +188,58 @@ def check_cursor_schema() -> None:
                 )
 
 
+# The tool surface of the pinned server, verified against a live tools/list.
+# Keep in sync when bumping the pin -- check-server-version.py prints the new
+# list on upgrade.
+TOOLS = [
+    "scrape", "search", "map", "crawl", "agentic_search",
+    "wire_discover", "wire_catalog", "wire_read_action", "wire_write_action",
+    "wire_identities", "wire_login", "wire_build",
+    "monitor_create", "monitor_list", "monitor_changes", "monitor_control",
+    "ai_visibility_search", "ai_visibility_sources",
+    "session_list", "session_delete",
+    "browser_task",
+]
+
+# Tools that existed in an earlier pin and no longer do. A skill still naming
+# one of these sends the agent after a tool the server will reject.
+REMOVED_TOOLS = {
+    "wire_action": "split into wire_read_action / wire_write_action in 0.2.0",
+}
+
+
+def check_tool_coverage() -> None:
+    """Every tool documented somewhere, and no skill naming a removed tool.
+
+    Skills are the plugin's whole value; a skill describing a tool that no
+    longer exists is worse than no skill, because the agent will confidently
+    call it. This is the check that catches a server bump the skills did not
+    follow.
+    """
+    skills_dir = ROOT / "skills"
+    if not skills_dir.is_dir():
+        return
+    corpus = {
+        md: md.read_text()
+        for md in skills_dir.glob("*/SKILL.md")
+    }
+    if not corpus:
+        return
+
+    joined = "\n".join(corpus.values())
+    for tool in TOOLS:
+        if not re.search(rf"\b{re.escape(tool)}\b", joined):
+            err(f"tool {tool!r} is exposed by the pinned server but no skill mentions it")
+
+    for md, text in corpus.items():
+        rel = md.relative_to(ROOT)
+        for gone, why in REMOVED_TOOLS.items():
+            # Word boundary alone would match wire_action inside
+            # wire_action_id; require the name not be followed by _ or a letter.
+            if re.search(rf"\b{re.escape(gone)}(?![\w])", text):
+                err(f"{rel}: references removed tool {gone!r} — {why}")
+
+
 def check_skills() -> None:
     skills_dir = ROOT / "skills"
     if not skills_dir.is_dir():
@@ -212,11 +280,13 @@ def main() -> int:
     load_json("mcp.json")
     load_json(".claude-plugin/marketplace.json")
     check_mcp_in_sync()
+    check_gemini_matches()
     check_server_version_pinned()
     check_no_env_placeholders()
     check_manifests_agree()
     check_cursor_schema()
     check_skills()
+    check_tool_coverage()
 
     if errors:
         for e in errors:
