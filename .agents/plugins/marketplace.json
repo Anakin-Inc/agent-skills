@@ -1,0 +1,20 @@
+{
+  "name": "anakin",
+  "interface": {
+    "displayName": "Anakin"
+  },
+  "plugins": [
+    {
+      "name": "anakin",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Development"
+    }
+  ]
+}

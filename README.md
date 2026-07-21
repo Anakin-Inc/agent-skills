@@ -32,6 +32,13 @@ Browse the plugin marketplace and install `anakin`.
 gemini extensions install https://github.com/Anakin-Inc/agent-skills
 ```
 
+### OpenAI Codex
+
+```
+codex plugin marketplace add Anakin-Inc/agent-skills
+codex plugin install anakin
+```
+
 ### Any MCP client
 
 The skills wrap the published MCP server, which works standalone:
@@ -107,6 +114,8 @@ gemini-extension.json      Gemini CLI manifest (inlines its own MCP block)
 .claude-plugin/            Claude Code plugin + marketplace manifests
 .grok-plugin/              Grok manifest
 .cursor-plugin/            Cursor manifest
+.codex-plugin/             Codex manifest
+.agents/plugins/           Codex marketplace index
 assets/                    logo
 ```
 

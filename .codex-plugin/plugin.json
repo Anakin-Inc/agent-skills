@@ -1,0 +1,32 @@
+{
+  "name": "anakin",
+  "version": "0.2.1",
+  "description": "Anakin web data platform (MCP Server + Skills). Scrape pages to markdown, map and crawl sites, run AI search and deep research, execute pre-built Wire actions across hundreds of popular websites, monitor pages for changes, compare AI answer engines, and drive a real cloud browser with natural language.",
+  "author": {
+    "name": "Anakin",
+    "url": "https://anakin.io"
+  },
+  "homepage": "https://anakin.io",
+  "repository": "https://github.com/Anakin-Inc/agent-skills",
+  "license": "Apache-2.0",
+  "keywords": ["anakin", "anakin.io", "anakin scrape", "wire action"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Anakin",
+    "shortDescription": "Scrape, crawl, search, monitor and automate the web.",
+    "longDescription": "Turn any website into clean markdown or structured JSON. Run AI search and multi-source deep research, execute pre-built Wire actions across hundreds of popular sites, watch pages for changes on a schedule, and drive a real cloud browser from natural language.",
+    "defaultPrompt": [
+      "Scrape this URL and give me the key details as JSON.",
+      "Research this topic across multiple sources and summarize what they agree on.",
+      "Watch this product page and tell me when the price changes."
+    ],
+    "developerName": "Anakin",
+    "category": "Development",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://anakin.io",
+    "privacyPolicyURL": "https://anakin.io/privacy",
+    "termsOfServiceURL": "https://anakin.io/terms",
+    "brandColor": "#1f302c"
+  }
+}
