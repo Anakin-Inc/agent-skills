@@ -57,7 +57,7 @@ environment variables from.
 This is a correctness choice, not an omission. A config containing
 `"ANAKIN_API_KEY": "${ANAKIN_API_KEY}"` breaks on any client that does not
 expand `${VAR}`: the literal string is passed through, the server accepts it as
-a key, and it starts and advertises all eleven tools — every call then fails at
+a key, and it starts and advertises all twenty-one tools — every call then fails at
 the API. Without an `env` block a missing key instead stops the server
 immediately with a message naming the variable and where to get one. Failing
 loudly at startup beats failing confusingly mid-task.
@@ -79,7 +79,7 @@ twenty-one tools over `api.anakin.io`.
 
 ## Versioning
 
-The plugin pins an exact MCP server version (`@anakin-io/mcp@0.2.0`) rather than
+The plugin pins an exact MCP server version (`@anakin-io/mcp@0.2.1`) rather than
 tracking `@latest`.
 
 Marketplaces install this repository at a frozen commit SHA. A floating npm tag
