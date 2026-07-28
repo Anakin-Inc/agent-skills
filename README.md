@@ -50,6 +50,19 @@ npx -y @anakin-io/mcp@latest init --all
 This path tracks `@latest` because it is a direct install you control. The
 plugin itself pins an exact version — see [Versioning](#versioning).
 
+**Windsurf, Cline, JetBrains, Goose, Kiro, LM Studio, Amp, Augment Code, Qwen
+Coder, OpenCode, Zencoder, Trae, Raycast** — none of these have a marketplace
+this repo can submit a package to; each needs its own config snippet pasted
+into that client's MCP settings, because the JSON shape and env-var rules
+differ client to client in ways that silently break auth if you get them
+wrong. See [docs/CLIENTS.md](docs/CLIENTS.md) for a verified snippet per
+client. **Zed** needs a compiled extension (queued, not a snippet). **Replit**
+doesn't support stdio servers at all — needs `mcp.anakin.io`, the hosted
+endpoint from `anakin-mcp-remote`, not this repo. **Conductor** delegates to
+whichever underlying agent it's driving (Claude Code, Codex, Cursor) — those
+are already covered above, so there's nothing separate to install. **Roo
+Code** shut down May 2026 and isn't being pursued.
+
 ## API key
 
 **Set this before using the plugin.** All tools require an Anakin API key in
@@ -117,6 +130,8 @@ gemini-extension.json      Gemini CLI manifest (inlines its own MCP block)
 .codex-plugin/             Codex manifest
 .agents/plugins/           Codex marketplace index
 .github/plugin/            Copilot CLI + VS Code manifest
+docs/CLIENTS.md            config snippets for clients with no marketplace
+docs/submissions/          draft submissions for clients with a real registry
 assets/                    logo
 ```
 
