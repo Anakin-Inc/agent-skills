@@ -117,6 +117,7 @@ gemini-extension.json      Gemini CLI manifest (inlines its own MCP block)
 .codex-plugin/             Codex manifest
 .agents/plugins/           Codex marketplace index
 .github/plugin/            Copilot CLI + VS Code manifest
+.chatgpt-plugin/           ChatGPT Apps manifest (tools-only, no custom UI -- see its README)
 assets/                    logo
 ```
 
