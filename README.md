@@ -54,7 +54,7 @@ plugin itself pins an exact version — see [Versioning](#versioning).
 
 **Set this before using the plugin.** All tools require an Anakin API key in
 `ANAKIN_API_KEY`. Get one free at
-[anakin.io/dashboard](https://anakin.io/dashboard) — 500 credits, no card
+[anakin.io/dashboard](https://anakin.io/dashboard) — 300 credits, no card
 required.
 
 The plugin deliberately ships **no `env` block**. The server inherits your
