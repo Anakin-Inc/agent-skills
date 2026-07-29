@@ -194,11 +194,6 @@
       "tools_triggered": "wire_discover, wire_read_action"
     },
     {
-      "description": "Map a site's URL structure before deciding what to crawl.",
-      "user_prompt": "Map anakin.io and tell me how many pages exist under /docs.",
-      "tools_triggered": "map"
-    },
-    {
       "description": "Compare how different AI answer engines respond to the same brand/topic query.",
       "user_prompt": "Ask ChatGPT, Gemini, and Google AI Overview what they say about Anakin and compare their answers.",
       "tools_triggered": "ai_visibility_search"
