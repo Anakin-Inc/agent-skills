@@ -95,4 +95,4 @@ filtering afterward.
 - Every tool returns an error envelope rather than throwing. On failure, read
   the message: it names the tool and the cause.
 - API key comes from `ANAKIN_API_KEY`. Get one at https://anakin.io/dashboard —
-  free tier is 500 credits, no card.
+  free tier is 300 credits, no card.
