@@ -1,0 +1,221 @@
+{
+  "$schema": "https://developers.openai.com/apps-sdk/schemas/chatgpt-app-submission.v1.json",
+  "schema_version": 1,
+  "app_info": {
+    "display_name": "Anakin",
+    "subtitle": "Scrape, search & extract data",
+    "description": "Anakin gives ChatGPT the live web. `scrape` a URL to clean markdown (or AI-structured JSON), `search` the web, `map` a site's URLs, `crawl` many pages at once, and run multi-source `agentic_search` deep research. Wire tools extract structured data from hundreds of specific sites and can act on your own accounts. Monitor any page, site, or Wire action on a schedule and get alerted on change. Compare how ChatGPT, Gemini, and Google AI Overview answer the same question with AI Visibility. Reuse saved browser logins for authenticated scraping, and hand multi-step jobs to an AI-driven cloud browser with `browser_task`. Connect over remote MCP with OAuth 2.1 -- no API-key pasting; Anakin mints a dedicated, revocable key scoped to your account. Read tools are auto-permitted; state-changing tools are annotated destructive so ChatGPT asks before each use. The connector never accesses your ChatGPT memory, chat, or files, never trains models on your data, and does not execute payments or transfer funds.",
+    "category": "DEVELOPER_TOOLS"
+  },
+  "tools": {
+    "scrape": {
+      "annotations": { "readOnlyHint": true, "openWorldHint": true, "destructiveHint": false },
+      "justifications": {
+        "read_only_justification": "Fetches and returns a single page's content as markdown or structured JSON; no state on any system is changed.",
+        "open_world_justification": "Reads arbitrary, user-supplied URLs anywhere on the open web, not a fixed or pre-approved set of sites.",
+        "destructive_justification": "No write, no side effect -- a pure read of publicly (or session-authenticated) accessible page content."
+      }
+    },
+    "map": {
+      "annotations": { "readOnlyHint": true, "openWorldHint": true, "destructiveHint": false },
+      "justifications": {
+        "read_only_justification": "Returns a site's internal/external link structure and counts; nothing is written.",
+        "open_world_justification": "Crawls link structure on any user-supplied domain across the open web.",
+        "destructive_justification": "No write, no side effect -- discovery only."
+      }
+    },
+    "crawl": {
+      "annotations": { "readOnlyHint": true, "openWorldHint": true, "destructiveHint": false },
+      "justifications": {
+        "read_only_justification": "Fetches markdown for many pages on a site; returns data, changes nothing.",
+        "open_world_justification": "Operates on any user-supplied domain across the open web.",
+        "destructive_justification": "No write, no side effect -- bulk read only."
+      }
+    },
+    "search": {
+      "annotations": { "readOnlyHint": true, "openWorldHint": true, "destructiveHint": false },
+      "justifications": {
+        "read_only_justification": "Synchronous web search returning URLs, titles, and snippets; no state change.",
+        "open_world_justification": "Searches the open web for a user-supplied query, not a closed corpus.",
+        "destructive_justification": "No write, no side effect -- read-only discovery."
+      }
+    },
+    "agentic_search": {
+      "annotations": { "readOnlyHint": true, "openWorldHint": true, "destructiveHint": false },
+      "justifications": {
+        "read_only_justification": "Searches, scrapes, and synthesizes an answer from multiple sources; returns data only.",
+        "open_world_justification": "Draws on sources found across the open web for a user-supplied research question.",
+        "destructive_justification": "No write, no side effect -- multi-source research and synthesis only."
+      }
+    },
+    "ai_visibility_search": {
+      "annotations": { "readOnlyHint": true, "openWorldHint": true, "destructiveHint": false },
+      "justifications": {
+        "read_only_justification": "Queries third-party AI answer engines and returns their responses; no state change on any system.",
+        "open_world_justification": "Sends the user's query to external AI answer engines (ChatGPT, Gemini, Google AI Overview) outside Anakin's own systems.",
+        "destructive_justification": "No write, no side effect -- read-only comparison of AI-generated answers."
+      }
+    },
+    "ai_visibility_sources": {
+      "annotations": { "readOnlyHint": true, "openWorldHint": true, "destructiveHint": false },
+      "justifications": {
+        "read_only_justification": "Lists available AI answer engine slugs and labels; no state change.",
+        "open_world_justification": "Describes external third-party AI answer engines available to query.",
+        "destructive_justification": "No write, no side effect -- static listing."
+      }
+    },
+    "wire_discover": {
+      "annotations": { "readOnlyHint": true, "openWorldHint": true, "destructiveHint": false },
+      "justifications": {
+        "read_only_justification": "Resolves which pre-built Wire actions exist for a given site; returns metadata only.",
+        "open_world_justification": "Resolves actions against any of hundreds of external, user-named sites.",
+        "destructive_justification": "No write, no side effect -- discovery only."
+      }
+    },
+    "wire_catalog": {
+      "annotations": { "readOnlyHint": true, "openWorldHint": true, "destructiveHint": false },
+      "justifications": {
+        "read_only_justification": "Lists available pre-built Wire actions; returns catalog metadata only.",
+        "open_world_justification": "Describes actions available across hundreds of external sites.",
+        "destructive_justification": "No write, no side effect -- static listing."
+      }
+    },
+    "wire_read_action": {
+      "annotations": { "readOnlyHint": true, "openWorldHint": true, "destructiveHint": false },
+      "justifications": {
+        "read_only_justification": "Executes a pre-built read-only extraction (e.g. price, listing, profile data) on an external site; returns data only.",
+        "open_world_justification": "Runs against hundreds of specific external sites the user chooses.",
+        "destructive_justification": "Read-only by construction -- write-capable Wire actions are a separate, destructive-annotated tool (wire_write_action)."
+      }
+    },
+    "wire_identities": {
+      "annotations": { "readOnlyHint": true, "openWorldHint": true, "destructiveHint": false },
+      "justifications": {
+        "read_only_justification": "Lists the user's own connected/authenticated identities for Wire actions; returns metadata only.",
+        "open_world_justification": "Reflects the user's connections to external third-party sites.",
+        "destructive_justification": "No write, no side effect -- read-only listing of the user's own connections."
+      }
+    },
+    "monitor_list": {
+      "annotations": { "readOnlyHint": true, "openWorldHint": false, "destructiveHint": false },
+      "justifications": {
+        "read_only_justification": "Lists the user's own configured monitors; returns metadata only.",
+        "open_world_justification": "Scoped entirely to the user's own Anakin account state, not external content.",
+        "destructive_justification": "No write, no side effect -- read-only listing."
+      }
+    },
+    "monitor_changes": {
+      "annotations": { "readOnlyHint": true, "openWorldHint": false, "destructiveHint": false },
+      "justifications": {
+        "read_only_justification": "Returns the recorded change history for one of the user's own monitors; no state change.",
+        "open_world_justification": "Scoped to the user's own Anakin account state.",
+        "destructive_justification": "No write, no side effect -- read-only history."
+      }
+    },
+    "session_list": {
+      "annotations": { "readOnlyHint": true, "openWorldHint": false, "destructiveHint": false },
+      "justifications": {
+        "read_only_justification": "Lists the user's own saved browser sessions; returns metadata only, never session contents/credentials.",
+        "open_world_justification": "Scoped entirely to the user's own Anakin account state.",
+        "destructive_justification": "No write, no side effect -- read-only listing."
+      }
+    },
+    "wire_write_action": {
+      "annotations": { "readOnlyHint": false, "openWorldHint": true, "destructiveHint": true },
+      "justifications": {
+        "read_only_justification": "Executes a state-changing action (e.g. submit a form, add to cart, post content) on an external site on the user's behalf.",
+        "open_world_justification": "Acts against external, user-chosen third-party sites.",
+        "destructive_justification": "Performs a real, potentially irreversible action on an external site's data or the user's account there. Payment/fund-transfer actions are explicitly refused by a server-side policy guard regardless of what's requested."
+      }
+    },
+    "wire_login": {
+      "annotations": { "readOnlyHint": false, "openWorldHint": true, "destructiveHint": true },
+      "justifications": {
+        "read_only_justification": "Establishes an authenticated session against an external site, changing the user's session state on that site.",
+        "open_world_justification": "Authenticates against external, user-chosen third-party sites.",
+        "destructive_justification": "Creates a new session/credential state; treated as destructive since it changes account-linked state on an external service."
+      }
+    },
+    "wire_build": {
+      "annotations": { "readOnlyHint": false, "openWorldHint": true, "destructiveHint": true },
+      "justifications": {
+        "read_only_justification": "Requests a new pre-built Wire action be built for a site not yet covered -- a build/creation operation, not a read.",
+        "open_world_justification": "Targets an arbitrary external site the user names.",
+        "destructive_justification": "Creates new server-side state (a new Wire action) and consumes credits, refunded automatically only if the build fails. Payment/fund-transfer intents are explicitly refused."
+      }
+    },
+    "monitor_create": {
+      "annotations": { "readOnlyHint": false, "openWorldHint": false, "destructiveHint": true },
+      "justifications": {
+        "read_only_justification": "Creates a new scheduled monitor -- a write operation against the user's own account.",
+        "open_world_justification": "Scoped to the user's own Anakin account state, even though the monitor itself watches external content.",
+        "destructive_justification": "Creates new, persistent, billed state (a recurring scheduled job) in the user's account."
+      }
+    },
+    "monitor_control": {
+      "annotations": { "readOnlyHint": false, "openWorldHint": false, "destructiveHint": true },
+      "justifications": {
+        "read_only_justification": "Pauses, resumes, force-runs, or deletes an existing monitor -- a write operation on the user's own account.",
+        "open_world_justification": "Scoped to the user's own Anakin account state.",
+        "destructive_justification": "Changes or removes existing persistent state; deletion is irreversible."
+      }
+    },
+    "session_delete": {
+      "annotations": { "readOnlyHint": false, "openWorldHint": false, "destructiveHint": true },
+      "justifications": {
+        "read_only_justification": "Deletes one of the user's own saved browser sessions -- a write operation.",
+        "open_world_justification": "Scoped to the user's own Anakin account state.",
+        "destructive_justification": "Irreversibly removes a saved session; any authenticated scraping relying on it will stop working."
+      }
+    },
+    "browser_task": {
+      "annotations": { "readOnlyHint": false, "openWorldHint": true, "destructiveHint": true },
+      "justifications": {
+        "read_only_justification": "Drives a real cloud browser through a multi-step natural-language task, which can include state-changing actions on external sites.",
+        "open_world_justification": "Operates against arbitrary external sites the user describes in natural language.",
+        "destructive_justification": "Can perform real, potentially irreversible actions during a multi-step browser session. Accepts no credential input directly (authenticated tasks use the user's own saved sessions), and payment/fund-transfer intents are explicitly refused."
+      }
+    }
+  },
+  "test_cases": [
+    {
+      "description": "Scrape a known URL and return structured content.",
+      "user_prompt": "Scrape https://anakin.io/pricing and give me the plans as a table.",
+      "tools_triggered": "scrape"
+    },
+    {
+      "description": "Web search for a factual, time-sensitive query.",
+      "user_prompt": "Search for the latest EU AI Act compliance deadlines and summarize the key dates.",
+      "tools_triggered": "search"
+    },
+    {
+      "description": "Use a pre-built Wire action to extract structured data from a well-known site instead of freeform scraping.",
+      "user_prompt": "Use a Wire action to get the top products in Walmart's electronics category and list their prices.",
+      "tools_triggered": "wire_discover, wire_read_action"
+    },
+    {
+      "description": "Compare how different AI answer engines respond to the same brand/topic query.",
+      "user_prompt": "Ask ChatGPT, Gemini, and Google AI Overview what they say about Anakin and compare their answers.",
+      "tools_triggered": "ai_visibility_search"
+    },
+    {
+      "description": "Create a scheduled monitor that alerts on page changes.",
+      "user_prompt": "Create a monitor on https://anakin.io/pricing that checks hourly and emails me when the plans change.",
+      "tools_triggered": "monitor_create"
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "description": "General knowledge question with no web-data component -- should not trigger any Anakin tool.",
+      "user_prompt": "What's the capital of France?"
+    },
+    {
+      "description": "Pure code-generation task unrelated to fetching or acting on web data.",
+      "user_prompt": "Write a Python function that reverses a string."
+    },
+    {
+      "description": "Creative/literary task with no external data to fetch.",
+      "user_prompt": "Write a short poem about autumn."
+    }
+  ]
+}
