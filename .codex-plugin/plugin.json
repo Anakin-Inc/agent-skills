@@ -12,9 +12,10 @@
   "keywords": ["anakin", "anakin.io", "anakin scrape", "wire action"],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
+  "apps": "./.app.json",
   "interface": {
     "displayName": "Anakin",
-    "shortDescription": "Scrape, crawl, search, monitor and automate the web.",
+    "shortDescription": "Scrape, search & extract data",
     "longDescription": "Turn any website into clean markdown or structured JSON. Run AI search and multi-source deep research, execute pre-built Wire actions across hundreds of popular sites, watch pages for changes on a schedule, and drive a real cloud browser from natural language.",
     "defaultPrompt": [
       "Scrape this URL and give me the key details as JSON.",
