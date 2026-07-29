@@ -114,10 +114,9 @@ gemini-extension.json      Gemini CLI manifest (inlines its own MCP block)
 .claude-plugin/            Claude Code plugin + marketplace manifests
 .grok-plugin/              Grok manifest
 .cursor-plugin/            Cursor manifest
-.codex-plugin/             Codex manifest
+.codex-plugin/             Codex manifest (shared with ChatGPT -- same universal plugin directory)
 .agents/plugins/           Codex marketplace index
 .github/plugin/            Copilot CLI + VS Code manifest
-.chatgpt-plugin/           ChatGPT Apps manifest (tools-only, no custom UI -- see its README)
 assets/                    logo
 ```
 
