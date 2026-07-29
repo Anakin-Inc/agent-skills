@@ -22,11 +22,13 @@
       "Watch this product page and tell me when the price changes."
     ],
     "developerName": "Anakin",
-    "category": "Development",
+    "category": "Developer Tools",
     "capabilities": ["Read", "Write"],
     "websiteURL": "https://anakin.io",
     "privacyPolicyURL": "https://anakin.io/privacy",
     "termsOfServiceURL": "https://anakin.io/terms",
-    "brandColor": "#1f302c"
+    "brandColor": "#1f302c",
+    "composerIcon": "./assets/logo.png",
+    "logo": "./assets/logo.png"
   }
 }
