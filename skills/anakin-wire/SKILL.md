@@ -91,6 +91,11 @@ scraper, then publishes it.
 - `visibility` defaults to `private`.
 - Rejected with `ACTION_EXISTS` if similar actions exist; pass `force: true` to
   override.
+- On the hosted server, track a build with `wire_build_status`: pass the `id`
+  from `build_request` and poll every ~30s while it is `pending` or
+  `processing`. Read the `skipped` list when it finishes, because a build can
+  deliver only part of what was asked. The local server has no status tool;
+  look the action up with `wire_catalog` instead.
 
 **Only call this after `wire_discover` and `wire_catalog` confirm nothing
 covers the site.** Building duplicates wastes credits and time.
