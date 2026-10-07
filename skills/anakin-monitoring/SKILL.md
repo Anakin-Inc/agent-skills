@@ -37,7 +37,14 @@ for checks *and* wade through noise. Define an `outputSchema` with just the
 fields that matter.
 
 `aiMode` adds **+1 credit/check** and filters trivial noise, summarizing real
-changes. Worth it on pages that churn.
+changes. Worth it on pages that churn. Pair it with `aiGoal`, a plain-language
+rule for which changes count, e.g. `"only when the price drops or it goes out of
+stock"`. Without one, the filter guesses what matters.
+
+In `full_page` mode, `watchFormat` sets what is compared: `"markdown"`
+(default), `"html"`, or `"cleaned_html"`. Keep the default unless the change
+you care about lives in markup that markdown drops, such as attributes or
+hidden elements.
 
 ### Cost arithmetic before you create
 

@@ -304,6 +304,11 @@ TOOLS = [
     "browser_task",
 ]
 
+# Tools only the hosted server (mcp.anakin.io, used by the Claude plugin)
+# exposes. The skills must still describe them, or Claude plugin users get a
+# tool no skill explains. Keep in sync with anakin-mcp-remote's src/tools.
+HOSTED_ONLY_TOOLS = ["wire_build_status"]
+
 # Tools that existed in an earlier pin and no longer do. A skill still naming
 # one of these sends the agent after a tool the server will reject.
 REMOVED_TOOLS = {
@@ -333,6 +338,9 @@ def check_tool_coverage() -> None:
     for tool in TOOLS:
         if not re.search(rf"\b{re.escape(tool)}\b", joined):
             err(f"tool {tool!r} is exposed by the pinned server but no skill mentions it")
+    for tool in HOSTED_ONLY_TOOLS:
+        if not re.search(rf"\b{re.escape(tool)}\b", joined):
+            err(f"tool {tool!r} is exposed by the hosted server but no skill mentions it")
 
     for md, text in corpus.items():
         rel = md.relative_to(ROOT)

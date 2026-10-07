@@ -7,8 +7,8 @@ description: Use when fetching content from the web with Anakin — reading a pa
 
 ## Pick the right tool first
 
-Anakin has twenty-one tools across five groups. Choosing wrong is the most
-common and most expensive mistake — check this table before calling anything.
+Anakin's tools fall into five groups. Choosing wrong is the most common and
+most expensive mistake — check this table before calling anything.
 
 | The task | Tool | Skill |
 |---|---|---|
