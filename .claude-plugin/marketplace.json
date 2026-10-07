@@ -1,5 +1,6 @@
 {
   "name": "anakin",
+  "description": "Anakin's plugin for web scraping, search, deep research, Wire site actions, monitoring and browser automation.",
   "owner": {
     "name": "Anakin",
     "url": "https://anakin.io"

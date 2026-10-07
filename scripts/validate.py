@@ -12,6 +12,9 @@ during a marketplace review:
     additionalProperties:false and rejects author.url
   * every skill has SKILL.md with name and description frontmatter, and its
     name matches its directory
+  * the Claude manifest points its server at the hosted endpoint under the
+    same name as .mcp.json, and no tracked file trips the Claude directory's
+    blocking or held file rules
 
 Run: python3 scripts/validate.py
 """
@@ -20,6 +23,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 import urllib.request
 from pathlib import Path
@@ -33,6 +37,14 @@ CURSOR_SCHEMA_URL = (
 # filename and shape, so the same config is spelled three ways and must not
 # drift between them.
 MCP_CONFIG_FILES = (".mcp.json", "mcp.json", "gemini-extension.json")
+
+# The Claude plugin uses the hosted OAuth server instead of the local npx one.
+HOSTED_MCP_URL = "https://mcp.anakin.io/mcp"
+
+# Anthropic's directory blocks OS metadata files and holds non-image binaries.
+SYSTEM_FILES = {".DS_Store", "Thumbs.db", "desktop.ini", "__MACOSX"}
+IMAGE_OR_FONT = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".woff", ".woff2", ".ttf", ".otf"}
+HELD_BINARY = {".pyc", ".ico", ".pdf", ".zip", ".mcpb", ".dxt", ".exe", ".so", ".dylib", ".jar"}
 
 errors: list[str] = []
 
@@ -129,6 +141,95 @@ def check_no_env_placeholders() -> None:
                         f"clients that do not expand it pass the literal through, "
                         f"producing tools that appear to work but always fail"
                     )
+
+
+def check_claude_hosted_server() -> None:
+    """The Claude manifest must point every server at the hosted endpoint.
+
+    Claude loads .mcp.json first, then the manifest's mcpServers, and a later
+    entry replaces an earlier one only when the names match. If the names
+    drift, Claude runs both: the hosted server, and an npx server that dies
+    without ANAKIN_API_KEY -- duplicate tools, half of them broken.
+    """
+    manifest = load_json(".claude-plugin/plugin.json")
+    local = load_json(".mcp.json")
+    if not manifest or not local:
+        return
+    servers = manifest.get("mcpServers")
+    if not isinstance(servers, dict) or not servers:
+        err(".claude-plugin/plugin.json: mcpServers must inline the hosted server")
+        return
+    local_names = set(local.get("mcpServers", {}))
+    if set(servers) != local_names:
+        err(
+            f".claude-plugin/plugin.json: mcpServers names {sorted(servers)} must "
+            f"match .mcp.json {sorted(local_names)} so the hosted entry replaces "
+            f"the local one instead of running alongside it"
+        )
+    for name, spec in servers.items():
+        if spec.get("type") != "http":
+            err(f".claude-plugin/plugin.json: server {name!r} must be type 'http'")
+        if spec.get("url") != HOSTED_MCP_URL:
+            err(f".claude-plugin/plugin.json: server {name!r} url must be {HOSTED_MCP_URL}")
+        if "headers" in spec or "env" in spec:
+            err(
+                f".claude-plugin/plugin.json: server {name!r} must not carry headers "
+                f"or env -- the hosted server authenticates over OAuth"
+            )
+
+
+def check_claude_listing_fields() -> None:
+    """Directory listing fields: https URLs and an icon that exists."""
+    manifest = load_json(".claude-plugin/plugin.json")
+    if not manifest:
+        return
+    for field in ("documentationUrl", "supportUrl", "privacyPolicyUrl", "termsOfServiceUrl"):
+        value = manifest.get(field)
+        if not (isinstance(value, str) and value.startswith("https://")):
+            err(f".claude-plugin/plugin.json: {field} must be an https:// URL")
+    icon = manifest.get("icon")
+    if not (isinstance(icon, str) and icon.startswith("./") and (ROOT / icon).is_file()):
+        err(f".claude-plugin/plugin.json: icon {icon!r} must be a ./ path to an existing file")
+
+
+def tracked_files() -> list[str] | None:
+    """Files git will put in the archive the directory validates, or None."""
+    try:
+        out = subprocess.run(
+            ["git", "ls-files", "-z"], cwd=ROOT, capture_output=True, check=True
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return [p for p in out.decode().split("\0") if p]
+
+
+def check_directory_file_rules() -> None:
+    """Rules Anthropic's directory blocks or holds on, checked before a push.
+
+    The repo root is the plugin folder, so every tracked file counts. See
+    https://claude.com/docs/plugins/pre-submission-checklist
+    """
+    files = tracked_files()
+    if files is None:
+        print("warning: git unavailable; skipping directory file checks", file=sys.stderr)
+        return
+    if len(files) > 512:
+        err(f"{len(files)} tracked files -- the directory holds plugins over 512")
+    for rel in files:
+        parts = Path(rel).parts
+        name = parts[-1]
+        if name in SYSTEM_FILES or any(p in SYSTEM_FILES for p in parts):
+            err(f"{rel}: OS metadata file -- the directory blocks these")
+            continue
+        suffix = Path(rel).suffix.lower()
+        if suffix in IMAGE_OR_FONT:
+            continue
+        if suffix in HELD_BINARY or "__pycache__" in parts:
+            err(f"{rel}: binary file -- the directory holds these for manual review")
+            continue
+        path = ROOT / rel
+        if path.is_file() and path.stat().st_size > 256 * 1024:
+            err(f"{rel}: over 256 KiB -- the directory holds these for manual review")
 
 
 def check_manifests_agree() -> None:
@@ -285,6 +386,9 @@ def main() -> int:
     check_gemini_matches()
     check_server_version_pinned()
     check_no_env_placeholders()
+    check_claude_hosted_server()
+    check_claude_listing_fields()
+    check_directory_file_rules()
     check_manifests_agree()
     check_cursor_schema()
     check_skills()

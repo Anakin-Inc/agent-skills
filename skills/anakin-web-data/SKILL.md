@@ -94,5 +94,8 @@ filtering afterward.
   needs it.
 - Every tool returns an error envelope rather than throwing. On failure, read
   the message: it names the tool and the cause.
-- API key comes from `ANAKIN_API_KEY`. Get one at https://anakin.io/dashboard —
-  free tier is 300 credits, no card.
+- Authentication depends on the server. The hosted server (`mcp.anakin.io`,
+  used by the Claude plugin) signs in with the user's Anakin account over OAuth,
+  so there is no key to set. The local server (`@anakin-io/mcp`) reads
+  `ANAKIN_API_KEY`. Either way an account comes from
+  https://anakin.io/dashboard — free tier is 300 credits, no card.
