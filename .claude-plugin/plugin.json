@@ -1,7 +1,7 @@
 {
   "name": "anakin",
   "displayName": "Anakin",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Anakin web data platform (MCP Server + Skills). Scrape pages to markdown, map and crawl sites, run AI search and deep research, execute pre-built Wire actions across hundreds of popular websites, monitor pages for changes, compare AI answer engines, and drive a real cloud browser with natural language.",
   "author": {
     "name": "Anakin",
@@ -14,8 +14,8 @@
   "keywords": ["anakin", "anakin.io", "anakin wire", "wire action", "anakin scrape"],
   "icon": "./assets/logo.png",
   "documentationUrl": "https://anakin.io/docs/integrations/ai-agents/claude-connector",
-  "supportUrl": "https://github.com/Anakin-Inc/agent-skills/issues",
-  "privacyPolicyUrl": "https://anakin.io/claude-connector-privacy",
+  "supportUrl": "https://anakin.io/support",
+  "privacyPolicyUrl": "https://anakin.io/connector-privacy",
   "termsOfServiceUrl": "https://anakin.io/terms",
   "mcpServers": {
     "anakin": {
