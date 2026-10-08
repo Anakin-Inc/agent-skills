@@ -133,7 +133,7 @@ machine.
 
 Tool calls spend Anakin credits; see [pricing](https://anakin.io/pricing). Full
 details are in the
-[privacy policy](https://anakin.io/claude-connector-privacy).
+[privacy policy](https://anakin.io/connector-privacy).
 
 ## Versioning
 
