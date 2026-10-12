@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "anakin": {
+      "serverUrl": "https://mcp.anakin.io/mcp"
+    }
+  }
+}

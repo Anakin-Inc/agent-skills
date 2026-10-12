@@ -232,6 +232,34 @@ def check_directory_file_rules() -> None:
             err(f"{rel}: over 256 KiB -- the directory holds these for manual review")
 
 
+def check_antigravity_plugin() -> None:
+    """Antigravity reads plugin.json and mcp_config.json at the repo root.
+
+    Antigravity is a desktop app, which does not reliably see the shell's
+    environment, so it uses the hosted OAuth server like the Claude plugin
+    rather than the local server and an API key. Its config key is
+    ``serverUrl``; the ``url`` / ``httpUrl`` keys other clients use are ignored.
+    """
+    manifest = load_json("plugin.json")
+    gem = load_json("gemini-extension.json")
+    if manifest and gem:
+        for field in ("name", "description"):
+            if manifest.get(field) != gem.get(field):
+                err(f"plugin.json: {field} differs from gemini-extension.json")
+    config = load_json("mcp_config.json")
+    if not config:
+        return
+    servers = config.get("mcpServers", {})
+    if set(servers) != {"anakin"}:
+        err(f"mcp_config.json: expected one server named 'anakin', found {sorted(servers)}")
+    for name, spec in servers.items():
+        if spec.get("serverUrl") != HOSTED_MCP_URL:
+            err(f"mcp_config.json: {name}.serverUrl must be {HOSTED_MCP_URL}")
+        for key in ("url", "httpUrl", "command"):
+            if key in spec:
+                err(f"mcp_config.json: {name}.{key} found; the Antigravity plugin uses the hosted server via serverUrl only")
+
+
 def check_gemini_declares_api_key() -> None:
     """Gemini CLI gives an extension only the variables its manifest declares.
 
@@ -412,6 +440,7 @@ def main() -> int:
     check_claude_listing_fields()
     check_directory_file_rules()
     check_manifests_agree()
+    check_antigravity_plugin()
     check_gemini_declares_api_key()
     check_cursor_schema()
     check_skills()
