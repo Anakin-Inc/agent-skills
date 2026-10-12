@@ -15,6 +15,9 @@ during a marketplace review:
   * the Claude manifest points its server at the hosted endpoint under the
     same name as .mcp.json, and no tracked file trips the Claude directory's
     blocking or held file rules
+  * the Copilot plugin in copilot/ points at the hosted endpoint, its skills/
+    copy matches skills/, Copilot's marketplace entry installs it, and the
+    Copilot manifests pass awesome-copilot's keyword and description rules
 
 Run: python3 scripts/validate.py
 """
@@ -28,6 +31,8 @@ import sys
 import urllib.request
 from pathlib import Path
 
+from sync_copilot_skills import skill_files
+
 ROOT = Path(__file__).resolve().parent.parent
 CURSOR_SCHEMA_URL = (
     "https://raw.githubusercontent.com/cursor/plugins/main/schemas/plugin.schema.json"
@@ -38,8 +43,24 @@ CURSOR_SCHEMA_URL = (
 # drift between them.
 MCP_CONFIG_FILES = (".mcp.json", "mcp.json", "gemini-extension.json")
 
-# The Claude plugin uses the hosted OAuth server instead of the local npx one.
+# The Claude, Antigravity and Copilot plugins use the hosted OAuth server
+# instead of the local npx one.
 HOSTED_MCP_URL = "https://mcp.anakin.io/mcp"
+
+# The Copilot plugin's own directory. See scripts/sync_copilot_skills.py for
+# why it exists and carries a copy of skills/.
+COPILOT_DIR = "copilot"
+
+# The manifests Copilot installs: the root plugin.json (identical to
+# .github/plugin/plugin.json) for repository installs, and copilot/plugin.json
+# for marketplace installs, including awesome-copilot.
+COPILOT_MANIFESTS = (".github/plugin/plugin.json", f"{COPILOT_DIR}/plugin.json")
+
+# awesome-copilot's intake limits (eng/external-plugin-validation.mjs and
+# eng/validate-plugins.mjs in github/awesome-copilot).
+KEYWORD_PATTERN = re.compile(r"[a-z0-9-]{1,30}")
+MAX_KEYWORDS = 10
+MAX_DESCRIPTION = 500
 
 # Anthropic's directory blocks OS metadata files and holds non-image binaries.
 SYSTEM_FILES = {".DS_Store", "Thumbs.db", "desktop.ini", "__MACOSX"}
@@ -279,6 +300,98 @@ def check_gemini_declares_api_key() -> None:
         err("gemini-extension.json: settings must declare envVar ANAKIN_API_KEY")
 
 
+def check_copilot_plugin() -> None:
+    """The Copilot plugin in copilot/ runs the hosted server and mirrors skills/.
+
+    Copilot takes a plugin's MCP servers from the .mcp.json at the plugin root
+    and ignores the manifest's ``mcpServers`` when that file exists. At the
+    repository root that file is the local server, which exits without
+    ANAKIN_API_KEY, so the Copilot plugin is its own directory with its own
+    .mcp.json. Copilot refuses a skills path outside the plugin directory, so
+    the directory also carries a copy of skills/.
+    """
+    manifest = load_json(f"{COPILOT_DIR}/plugin.json")
+    if manifest:
+        if manifest.get("skills") != "./skills/":
+            err(f"{COPILOT_DIR}/plugin.json: skills must be './skills/'")
+        if manifest.get("mcpServers") != "./.mcp.json":
+            err(
+                f"{COPILOT_DIR}/plugin.json: mcpServers must be './.mcp.json' "
+                f"(VS Code documents a plugin's MCP servers as living in that file)"
+            )
+
+    config = load_json(f"{COPILOT_DIR}/.mcp.json")
+    local = load_json(".mcp.json")
+    if config and local:
+        servers = config.get("mcpServers", {})
+        local_names = set(local.get("mcpServers", {}))
+        if set(servers) != local_names:
+            err(
+                f"{COPILOT_DIR}/.mcp.json: server names {sorted(servers)} must match "
+                f".mcp.json {sorted(local_names)}"
+            )
+        for name, spec in servers.items():
+            if spec.get("type") != "http" or spec.get("url") != HOSTED_MCP_URL:
+                err(f"{COPILOT_DIR}/.mcp.json: {name} must be type 'http' with url {HOSTED_MCP_URL}")
+            if "headers" in spec or "env" in spec:
+                err(
+                    f"{COPILOT_DIR}/.mcp.json: {name} must not carry headers or env -- "
+                    f"the hosted server authenticates over OAuth"
+                )
+
+    source = skill_files(ROOT / "skills")
+    copy = skill_files(ROOT / COPILOT_DIR / "skills")
+    stale = sorted(
+        str(rel)
+        for rel in source.keys() | copy.keys()
+        if source.get(rel) != copy.get(rel)
+    )
+    if stale:
+        err(
+            f"{COPILOT_DIR}/skills/ differs from skills/ ({', '.join(stale)}) -- "
+            f"run python3 scripts/sync_copilot_skills.py"
+        )
+
+
+def check_copilot_marketplace() -> None:
+    """Copilot reads .github/plugin/marketplace.json ahead of the Claude one.
+
+    Its anakin entry must install copilot/. Pointed at the repository root,
+    ``copilot plugin install anakin@anakin`` would run the local server.
+    """
+    market = load_json(".github/plugin/marketplace.json")
+    if not market:
+        return
+    entries = {p.get("name"): p for p in market.get("plugins", []) if isinstance(p, dict)}
+    if "anakin" not in entries:
+        err(".github/plugin/marketplace.json: no plugin named 'anakin'")
+    elif entries["anakin"].get("source") != f"./{COPILOT_DIR}":
+        err(f".github/plugin/marketplace.json: anakin source must be './{COPILOT_DIR}'")
+
+
+def check_copilot_listing_rules() -> None:
+    """awesome-copilot's intake rejects keywords and descriptions outside its limits."""
+    for rel in COPILOT_MANIFESTS:
+        manifest = load_json(rel)
+        if not manifest:
+            continue
+        keywords = manifest.get("keywords")
+        if not isinstance(keywords, list) or not keywords:
+            err(f"{rel}: keywords must be a non-empty list")
+            continue
+        if len(keywords) > MAX_KEYWORDS:
+            err(f"{rel}: {len(keywords)} keywords; awesome-copilot allows {MAX_KEYWORDS}")
+        bad = [k for k in keywords if not (isinstance(k, str) and KEYWORD_PATTERN.fullmatch(k))]
+        if bad:
+            err(
+                f"{rel}: keywords {bad} must be 1-30 lowercase letters, digits "
+                f"or hyphens (awesome-copilot rejects anything else)"
+            )
+        description = manifest.get("description")
+        if isinstance(description, str) and len(description) > MAX_DESCRIPTION:
+            err(f"{rel}: description is {len(description)} characters; awesome-copilot allows {MAX_DESCRIPTION}")
+
+
 def check_manifests_agree() -> None:
     manifests = {
         rel: load_json(rel)
@@ -288,6 +401,7 @@ def check_manifests_agree() -> None:
             ".cursor-plugin/plugin.json",
             ".codex-plugin/plugin.json",
             ".github/plugin/plugin.json",
+            f"{COPILOT_DIR}/plugin.json",
             "gemini-extension.json",
         )
     }
@@ -447,6 +561,9 @@ def main() -> int:
     check_manifests_agree()
     check_antigravity_plugin()
     check_gemini_declares_api_key()
+    check_copilot_plugin()
+    check_copilot_marketplace()
+    check_copilot_listing_rules()
     check_cursor_schema()
     check_skills()
     check_tool_coverage()

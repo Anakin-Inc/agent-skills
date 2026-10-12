@@ -9,12 +9,7 @@
   "homepage": "https://anakin.io",
   "repository": "https://github.com/Anakin-Inc/agent-skills",
   "license": "Apache-2.0",
-  "keywords": [
-    "anakin",
-    "anakin.io",
-    "anakin scrape",
-    "wire action"
-  ],
+  "keywords": ["anakin", "web-scraping", "crawling", "web-search", "deep-research", "browser-automation", "mcp"],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json"
 }
