@@ -1,14 +1,22 @@
 {
   "name": "anakin",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "Anakin web data platform (MCP Server + Skills). Scrape pages to markdown, map and crawl sites, run AI search and deep research, execute pre-built Wire actions across hundreds of popular websites, monitor pages for changes, compare AI answer engines, and drive a real cloud browser with natural language.",
   "mcpServers": {
     "anakin": {
       "command": "npx",
       "args": [
         "-y",
-        "@anakin-io/mcp@0.2.1"
+        "@anakin-io/mcp@0.4.1"
       ]
     }
-  }
+  },
+  "settings": [
+    {
+      "name": "Anakin API key",
+      "description": "Your Anakin API key (starts with ask_). Get one free at https://anakin.io/dashboard.",
+      "envVar": "ANAKIN_API_KEY",
+      "sensitive": true
+    }
+  ]
 }

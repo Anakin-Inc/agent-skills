@@ -232,6 +232,53 @@ def check_directory_file_rules() -> None:
             err(f"{rel}: over 256 KiB -- the directory holds these for manual review")
 
 
+def check_antigravity_plugin() -> None:
+    """Antigravity reads plugin.json and mcp_config.json at the repo root.
+
+    Copilot CLI also reads a root plugin.json, ahead of .github/plugin/plugin.json,
+    for direct installs and our own marketplace entry. So the root manifest must
+    be the full Copilot manifest: Antigravity accepts its extra fields and takes
+    its MCP server from mcp_config.json only, ignoring the manifest's
+    ``mcpServers``.
+
+    Antigravity is a desktop app, which does not reliably see the shell's
+    environment, so it uses the hosted OAuth server like the Claude plugin
+    rather than the local server and an API key. Its config key is
+    ``serverUrl``; the ``url`` / ``httpUrl`` keys other clients use are ignored.
+    """
+    root = load_json("plugin.json")
+    copilot = load_json(".github/plugin/plugin.json")
+    if root and copilot and root != copilot:
+        err("plugin.json must be identical to .github/plugin/plugin.json "
+            "(Copilot CLI reads the root manifest first)")
+    config = load_json("mcp_config.json")
+    if not config:
+        return
+    servers = config.get("mcpServers", {})
+    if set(servers) != {"anakin"}:
+        err(f"mcp_config.json: expected one server named 'anakin', found {sorted(servers)}")
+    for name, spec in servers.items():
+        if spec.get("serverUrl") != HOSTED_MCP_URL:
+            err(f"mcp_config.json: {name}.serverUrl must be {HOSTED_MCP_URL}")
+        for key in ("url", "httpUrl", "command"):
+            if key in spec:
+                err(f"mcp_config.json: {name}.{key} found; the Antigravity plugin uses the hosted server via serverUrl only")
+
+
+def check_gemini_declares_api_key() -> None:
+    """Gemini CLI gives an extension only the variables its manifest declares.
+
+    Without an ANAKIN_API_KEY entry in ``settings`` the key never reaches the
+    local server, which then exits at startup on every Gemini install.
+    """
+    gem = load_json("gemini-extension.json")
+    if not gem:
+        return
+    env_vars = {s.get("envVar") for s in gem.get("settings", []) if isinstance(s, dict)}
+    if "ANAKIN_API_KEY" not in env_vars:
+        err("gemini-extension.json: settings must declare envVar ANAKIN_API_KEY")
+
+
 def check_manifests_agree() -> None:
     manifests = {
         rel: load_json(rel)
@@ -297,7 +344,7 @@ def check_cursor_schema() -> None:
 TOOLS = [
     "scrape", "search", "map", "crawl", "agentic_search",
     "wire_discover", "wire_catalog", "wire_read_action", "wire_write_action",
-    "wire_identities", "wire_login", "wire_build",
+    "wire_identities", "wire_login", "wire_build", "wire_build_status",
     "monitor_create", "monitor_list", "monitor_changes", "monitor_control",
     "ai_visibility_search", "ai_visibility_sources",
     "session_list", "session_delete",
@@ -307,7 +354,7 @@ TOOLS = [
 # Tools only the hosted server (mcp.anakin.io, used by the Claude plugin)
 # exposes. The skills must still describe them, or Claude plugin users get a
 # tool no skill explains. Keep in sync with anakin-mcp-remote's src/tools.
-HOSTED_ONLY_TOOLS = ["wire_build_status"]
+HOSTED_ONLY_TOOLS: list[str] = []
 
 # Tools that existed in an earlier pin and no longer do. A skill still naming
 # one of these sends the agent after a tool the server will reject.
@@ -398,6 +445,8 @@ def main() -> int:
     check_claude_listing_fields()
     check_directory_file_rules()
     check_manifests_agree()
+    check_antigravity_plugin()
+    check_gemini_declares_api_key()
     check_cursor_schema()
     check_skills()
     check_tool_coverage()
