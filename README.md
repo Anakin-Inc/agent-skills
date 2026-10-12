@@ -78,6 +78,24 @@ codex plugin marketplace add Anakin-Inc/agent-skills
 codex plugin install anakin
 ```
 
+### GitHub Copilot (CLI and VS Code)
+
+In Copilot CLI:
+
+```
+copilot plugin marketplace add Anakin-Inc/agent-skills
+copilot plugin install anakin@anakin
+```
+
+In VS Code, add `Anakin-Inc/agent-skills` to the `chat.plugins.marketplaces`
+setting, search `@agentPlugins` in the Extensions view, and install **anakin**.
+
+The Copilot plugin adds the five skills and connects to Anakin's hosted MCP
+server at `https://mcp.anakin.io/mcp`. The first time a tool runs, Copilot asks
+you to sign in to Anakin; there is no API key to copy. Installing the
+repository directly (`copilot plugin install Anakin-Inc/agent-skills`) gets the
+local server instead, which needs an [API key](#api-key).
+
 ### Any MCP client
 
 The skills wrap the published MCP server, which works standalone:
@@ -91,8 +109,8 @@ plugin itself pins an exact version — see [Versioning](#versioning).
 
 ## API key
 
-The Claude and Antigravity plugins sign in over OAuth and need no key. Every
-other platform runs the local server, which needs one.
+The Claude, Antigravity and Copilot plugins sign in over OAuth and need no key.
+Every other platform runs the local server, which needs one.
 
 **Set this before using the plugin anywhere else.** All tools require an Anakin
 API key in `ANAKIN_API_KEY`. Get one free at
@@ -115,8 +133,8 @@ loudly at startup beats failing confusingly mid-task.
 
 ## What's included
 
-**MCP server** — the Claude and Antigravity plugins use the hosted server at
-`https://mcp.anakin.io/mcp`. Every other platform runs
+**MCP server** — the Claude, Antigravity and Copilot plugins use the hosted
+server at `https://mcp.anakin.io/mcp`. Every other platform runs
 [`@anakin-io/mcp`](https://github.com/Anakin-Inc/anakin-mcp) locally. Both have
 the same twenty-two tools and call `api.anakin.io`.
 
@@ -136,16 +154,17 @@ The plugin is five skills (Markdown instructions) and one MCP server entry. It
 has no hooks, commands, agents or scripts, and nothing in it runs on your
 machine.
 
-- **Where data goes.** The Claude and Antigravity plugins connect only to
-  `https://mcp.anakin.io/mcp`, which calls `api.anakin.io`. The local server on
-  other platforms calls `api.anakin.io` directly.
+- **Where data goes.** The Claude, Antigravity and Copilot plugins connect only
+  to `https://mcp.anakin.io/mcp`, which calls `api.anakin.io`. The local server
+  on other platforms calls `api.anakin.io` directly.
 - **What is sent.** The arguments of each tool call you or Claude make: URLs,
   search queries, extraction schemas, Wire action inputs, monitor settings and
   browser-task instructions. Anakin then fetches the pages or runs the actions
   you asked for on the public web or on the sites you target.
-- **Sign-in.** The Claude plugin signs in with your Anakin account over OAuth
-  2.1. Anakin creates an API key scoped to your account for that connection and
-  stores it encrypted. Claude never sees your Anakin password or the key.
+- **Sign-in.** The Claude, Antigravity and Copilot plugins sign in with your
+  Anakin account over OAuth 2.1. Anakin creates an API key scoped to your
+  account for that connection and stores it encrypted. The client never sees
+  your Anakin password or the key.
 - **Third-party logins.** Only if you use `wire_login`, or pass a `credential`
   to `wire_build`, do you send login details for one of your own accounts on
   another site. Anakin keeps an encrypted session, not the password. You can
@@ -169,9 +188,9 @@ details are in the
 
 ## Versioning
 
-The Claude and Antigravity plugins use the hosted server, which Anakin deploys
-and versions itself, so there is nothing to pin. Every other platform runs the
-local server, and for those the plugin pins an exact version
+The Claude, Antigravity and Copilot plugins use the hosted server, which Anakin
+deploys and versions itself, so there is nothing to pin. Every other platform
+runs the local server, and for those the plugin pins an exact version
 (`@anakin-io/mcp@0.4.1`) rather than tracking `@latest`.
 
 Marketplaces install this repository at a frozen commit SHA. A floating npm tag
@@ -194,7 +213,8 @@ not mean nobody notices there is something to upgrade to.
 
 ```
 skills/                    source of truth for all platforms
-.mcp.json                  local MCP server definition (Grok, Codex, Copilot)
+.mcp.json                  local MCP server definition (Grok, Codex, Copilot
+                           installs of the repository root)
 mcp.json                   local MCP server definition (Cursor)
 gemini-extension.json      Gemini CLI manifest (inlines its own MCP block and
                            declares the ANAKIN_API_KEY setting)
@@ -207,12 +227,24 @@ mcp_config.json            Antigravity MCP config (the hosted server)
 .cursor-plugin/            Cursor manifest
 .codex-plugin/             Codex manifest (shared with ChatGPT -- same universal plugin directory)
 .agents/plugins/           Codex marketplace index
-.github/plugin/            Copilot CLI + VS Code manifest
+.github/plugin/            Copilot marketplace index (installs copilot/) and the
+                           manifest for installs of the repository root
+copilot/                   Copilot plugin (CLI + VS Code): manifest, .mcp.json
+                           for the hosted server, generated copy of skills/
 assets/                    logo
 ```
 
 The `skills/` directory is shared. Each platform directory holds only a
-manifest — the skills themselves are written once and never duplicated.
+manifest — the skills themselves are written once.
+
+Copilot is the exception. It takes a plugin's MCP servers from the `.mcp.json`
+at the plugin root and ignores the manifest's own `mcpServers`, so installed
+from the repository root it runs the local server. The Copilot plugin is
+therefore its own directory, `copilot/`, whose `.mcp.json` points at the hosted
+server. Copilot also refuses a skills path outside the plugin directory, so
+`copilot/skills/` is a copy of `skills/`: edit `skills/`, then run
+`python3 scripts/sync_copilot_skills.py`. `scripts/validate.py` fails while the
+copy differs.
 
 The local MCP server definition exists under two filenames because the
 platforms disagree on the convention: Grok reads `.mcp.json`, Cursor discovers
