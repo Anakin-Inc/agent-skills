@@ -10,5 +10,13 @@
         "@anakin-io/mcp@0.2.1"
       ]
     }
-  }
+  },
+  "settings": [
+    {
+      "name": "Anakin API key",
+      "description": "Your Anakin API key (starts with ask_). Get one free at https://anakin.io/dashboard.",
+      "envVar": "ANAKIN_API_KEY",
+      "sensitive": true
+    }
+  ]
 }

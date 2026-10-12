@@ -232,6 +232,20 @@ def check_directory_file_rules() -> None:
             err(f"{rel}: over 256 KiB -- the directory holds these for manual review")
 
 
+def check_gemini_declares_api_key() -> None:
+    """Gemini CLI gives an extension only the variables its manifest declares.
+
+    Without an ANAKIN_API_KEY entry in ``settings`` the key never reaches the
+    local server, which then exits at startup on every Gemini install.
+    """
+    gem = load_json("gemini-extension.json")
+    if not gem:
+        return
+    env_vars = {s.get("envVar") for s in gem.get("settings", []) if isinstance(s, dict)}
+    if "ANAKIN_API_KEY" not in env_vars:
+        err("gemini-extension.json: settings must declare envVar ANAKIN_API_KEY")
+
+
 def check_manifests_agree() -> None:
     manifests = {
         rel: load_json(rel)
@@ -398,6 +412,7 @@ def main() -> int:
     check_claude_listing_fields()
     check_directory_file_rules()
     check_manifests_agree()
+    check_gemini_declares_api_key()
     check_cursor_schema()
     check_skills()
     check_tool_coverage()
