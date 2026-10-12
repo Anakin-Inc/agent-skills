@@ -41,6 +41,36 @@ Browse the plugin marketplace and install `anakin`.
 gemini extensions install https://github.com/Anakin-Inc/agent-skills
 ```
 
+Gemini CLI asks for your Anakin API key during the install and keeps it in your
+system keychain. To change it later, run `gemini extensions config anakin`.
+
+### Antigravity
+
+Install the plugin from the command line:
+
+```
+agy plugin install https://github.com/Anakin-Inc/agent-skills
+```
+
+Or in Antigravity, run `/plugin` and install from this repository's URL. The
+plugin adds the five skills and connects to Anakin's hosted MCP server at
+`https://mcp.anakin.io/mcp`. The first time a tool runs, Antigravity opens an
+Anakin sign-in page; there is no API key to copy.
+
+To add only the MCP server, put this in `~/.gemini/config/mcp_config.json` (all
+workspaces) or `.agents/mcp_config.json` (one workspace):
+
+```json
+{
+  "mcpServers": {
+    "anakin": { "serverUrl": "https://mcp.anakin.io/mcp" }
+  }
+}
+```
+
+Antigravity reads `serverUrl` only; the `url` and `httpUrl` keys other clients
+use are ignored.
+
 ### OpenAI Codex
 
 ```
@@ -61,32 +91,34 @@ plugin itself pins an exact version — see [Versioning](#versioning).
 
 ## API key
 
-The Claude plugin signs in over OAuth and needs no key. Every other platform
-runs the local server, which needs one.
+The Claude and Antigravity plugins sign in over OAuth and need no key. Every
+other platform runs the local server, which needs one.
 
-**Set this before using the plugin outside Claude.** All tools require an Anakin
+**Set this before using the plugin anywhere else.** All tools require an Anakin
 API key in `ANAKIN_API_KEY`. Get one free at
 [anakin.io/dashboard](https://anakin.io/dashboard) — 300 credits, no card
 required.
 
 The plugin deliberately ships **no `env` block**. The server inherits your
 client's environment, so set `ANAKIN_API_KEY` wherever that client reads
-environment variables from.
+environment variables from. Gemini CLI is the exception: it passes an
+extension only the variables its manifest declares, so `gemini-extension.json`
+declares `ANAKIN_API_KEY` as a setting and Gemini asks for it at install.
 
 This is a correctness choice, not an omission. A config containing
 `"ANAKIN_API_KEY": "${ANAKIN_API_KEY}"` breaks on any client that does not
 expand `${VAR}`: the literal string is passed through, the server accepts it as
-a key, and it starts and advertises all twenty-one tools — every call then fails at
+a key, and it starts and advertises all twenty-two tools — every call then fails at
 the API. Without an `env` block a missing key instead stops the server
 immediately with a message naming the variable and where to get one. Failing
 loudly at startup beats failing confusingly mid-task.
 
 ## What's included
 
-**MCP server** — the Claude plugin uses the hosted server at
-`https://mcp.anakin.io/mcp` (twenty-two tools). Every other platform runs
-[`@anakin-io/mcp`](https://github.com/Anakin-Inc/anakin-mcp) locally
-(twenty-one tools; it lacks `wire_build_status`). Both call `api.anakin.io`.
+**MCP server** — the Claude and Antigravity plugins use the hosted server at
+`https://mcp.anakin.io/mcp`. Every other platform runs
+[`@anakin-io/mcp`](https://github.com/Anakin-Inc/anakin-mcp) locally. Both have
+the same twenty-two tools and call `api.anakin.io`.
 
 **Skills** — guidance on choosing and sequencing those tools:
 
@@ -104,7 +136,7 @@ The plugin is five skills (Markdown instructions) and one MCP server entry. It
 has no hooks, commands, agents or scripts, and nothing in it runs on your
 machine.
 
-- **Where data goes.** The Claude plugin connects only to
+- **Where data goes.** The Claude and Antigravity plugins connect only to
   `https://mcp.anakin.io/mcp`, which calls `api.anakin.io`. The local server on
   other platforms calls `api.anakin.io` directly.
 - **What is sent.** The arguments of each tool call you or Claude make: URLs,
@@ -137,10 +169,10 @@ details are in the
 
 ## Versioning
 
-The Claude plugin uses the hosted server, which Anakin deploys and versions
-itself, so there is nothing to pin. Every other platform runs the local server,
-and for those the plugin pins an exact version (`@anakin-io/mcp@0.2.1`) rather
-than tracking `@latest`.
+The Claude and Antigravity plugins use the hosted server, which Anakin deploys
+and versions itself, so there is nothing to pin. Every other platform runs the
+local server, and for those the plugin pins an exact version
+(`@anakin-io/mcp@0.4.1`) rather than tracking `@latest`.
 
 Marketplaces install this repository at a frozen commit SHA. A floating npm tag
 would undermine that in two ways: the reviewed commit could execute code nobody
@@ -148,8 +180,9 @@ reviewed, and an upstream change to a tool signature would reach already-
 installed users without a plugin release. Pinning makes every server upgrade a
 deliberate, reviewable change here.
 
-Upgrading is a two-line edit to `.mcp.json` and `mcp.json`, a version bump in the
-three platform manifests, and a release. CI rejects floating tags and ranges.
+Upgrading is an edit to `.mcp.json`, `mcp.json` and `gemini-extension.json`, a
+version bump in the platform manifests, and a release. CI rejects floating tags
+and ranges.
 
 The cost of pinning is staleness, so it is automated away: a weekly job compares
 the pin against npm and opens an issue when a newer server is published,
@@ -163,7 +196,10 @@ not mean nobody notices there is something to upgrade to.
 skills/                    source of truth for all platforms
 .mcp.json                  local MCP server definition (Grok, Codex, Copilot)
 mcp.json                   local MCP server definition (Cursor)
-gemini-extension.json      Gemini CLI manifest (inlines its own MCP block)
+gemini-extension.json      Gemini CLI manifest (inlines its own MCP block and
+                           declares the ANAKIN_API_KEY setting)
+plugin.json                Antigravity manifest
+mcp_config.json            Antigravity MCP config (the hosted server)
 .claude-plugin/            Claude plugin + marketplace manifests; plugin.json
                            points `anakin` at the hosted server, overriding .mcp.json
 .grok-plugin/              Grok manifest
