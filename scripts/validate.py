@@ -311,7 +311,7 @@ def check_cursor_schema() -> None:
 TOOLS = [
     "scrape", "search", "map", "crawl", "agentic_search",
     "wire_discover", "wire_catalog", "wire_read_action", "wire_write_action",
-    "wire_identities", "wire_login", "wire_build",
+    "wire_identities", "wire_login", "wire_build", "wire_build_status",
     "monitor_create", "monitor_list", "monitor_changes", "monitor_control",
     "ai_visibility_search", "ai_visibility_sources",
     "session_list", "session_delete",
@@ -321,7 +321,7 @@ TOOLS = [
 # Tools only the hosted server (mcp.anakin.io, used by the Claude plugin)
 # exposes. The skills must still describe them, or Claude plugin users get a
 # tool no skill explains. Keep in sync with anakin-mcp-remote's src/tools.
-HOSTED_ONLY_TOOLS = ["wire_build_status"]
+HOSTED_ONLY_TOOLS: list[str] = []
 
 # Tools that existed in an earlier pin and no longer do. A skill still naming
 # one of these sends the agent after a tool the server will reject.

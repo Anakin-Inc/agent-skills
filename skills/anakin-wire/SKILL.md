@@ -100,8 +100,7 @@ scraper, then publishes it.
 - Rejected with `ACTION_EXISTS` if similar actions exist; pass `force: true` to
   override.
 
-The hosted server (`mcp.anakin.io`) accepts three more options. The local
-server rejects them, so leave them out there:
+Three more options:
 
 - `actions` — a list of discrete capabilities, each built as its own action,
   e.g. `["search products", "get product details"]`. Omit it to let the builder
@@ -115,7 +114,7 @@ server rejects them, so leave them out there:
   either with an optional `login_url`. The password is used once and never
   stored. Never invent credentials; ask the user.
 
-Track a hosted build with `wire_build_status`:
+Track a build with `wire_build_status`:
 
 - Pass the `id` from `build_request` and poll every ~30s while it is `pending`
   or `processing`. The finished build lists each published action's
@@ -125,9 +124,6 @@ Track a hosted build with `wire_build_status`:
 - Omit `id` to list recent builds, optionally filtered by `status`.
 - `include_events: true` adds the step-by-step build log. It is verbose; use it
   only to explain a failed build.
-
-The local server has no status tool; look the action up with `wire_catalog`
-instead.
 
 **Only call this after `wire_discover` and `wire_catalog` confirm nothing
 covers the site.** Building duplicates wastes credits and time.
