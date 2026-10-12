@@ -198,7 +198,8 @@ skills/                    source of truth for all platforms
 mcp.json                   local MCP server definition (Cursor)
 gemini-extension.json      Gemini CLI manifest (inlines its own MCP block and
                            declares the ANAKIN_API_KEY setting)
-plugin.json                Antigravity manifest
+plugin.json                Antigravity manifest; Copilot CLI also reads it first,
+                           so it is identical to .github/plugin/plugin.json
 mcp_config.json            Antigravity MCP config (the hosted server)
 .claude-plugin/            Claude plugin + marketplace manifests; plugin.json
                            points `anakin` at the hosted server, overriding .mcp.json

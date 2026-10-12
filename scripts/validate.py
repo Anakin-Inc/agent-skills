@@ -235,17 +235,22 @@ def check_directory_file_rules() -> None:
 def check_antigravity_plugin() -> None:
     """Antigravity reads plugin.json and mcp_config.json at the repo root.
 
+    Copilot CLI also reads a root plugin.json, ahead of .github/plugin/plugin.json,
+    for direct installs and our own marketplace entry. So the root manifest must
+    be the full Copilot manifest: Antigravity accepts its extra fields and takes
+    its MCP server from mcp_config.json only, ignoring the manifest's
+    ``mcpServers``.
+
     Antigravity is a desktop app, which does not reliably see the shell's
     environment, so it uses the hosted OAuth server like the Claude plugin
     rather than the local server and an API key. Its config key is
     ``serverUrl``; the ``url`` / ``httpUrl`` keys other clients use are ignored.
     """
-    manifest = load_json("plugin.json")
-    gem = load_json("gemini-extension.json")
-    if manifest and gem:
-        for field in ("name", "description"):
-            if manifest.get(field) != gem.get(field):
-                err(f"plugin.json: {field} differs from gemini-extension.json")
+    root = load_json("plugin.json")
+    copilot = load_json(".github/plugin/plugin.json")
+    if root and copilot and root != copilot:
+        err("plugin.json must be identical to .github/plugin/plugin.json "
+            "(Copilot CLI reads the root manifest first)")
     config = load_json("mcp_config.json")
     if not config:
         return
