@@ -15,6 +15,7 @@ during a marketplace review:
   * the Claude manifest points its server at the hosted endpoint under the
     same name as .mcp.json, and no tracked file trips the Claude directory's
     blocking or held file rules
+  * every skill carries the same Amp mcp.json pointing at the hosted endpoint
   * the Copilot plugin in copilot/ points at the hosted endpoint, its skills/
     copy matches skills/, Copilot's marketplace entry installs it, and the
     Copilot manifests pass awesome-copilot's keyword and description rules
@@ -284,6 +285,30 @@ def check_antigravity_plugin() -> None:
         for key in ("url", "httpUrl", "command"):
             if key in spec:
                 err(f"mcp_config.json: {name}.{key} found; the Antigravity plugin uses the hosted server via serverUrl only")
+
+
+def check_amp_skill_servers() -> None:
+    """Amp takes MCP servers from an ``mcp.json`` beside each SKILL.md.
+
+    ``amp skill add Anakin-Inc/agent-skills`` installs the skills only; the
+    server comes from these per-skill files. Amp's format is a flat map of
+    server name to spec, not wrapped in ``mcpServers``. Every skill carries the
+    same file so the tools are there whichever skill Amp loads first, and the
+    shared name ``anakin`` makes Amp connect once and lets a server the user
+    added themselves under that name take precedence. Amp is a remote-capable
+    client, so it uses the hosted OAuth server and needs no API key.
+    """
+    skills_dir = ROOT / "skills"
+    if not skills_dir.is_dir():
+        return
+    expected = {"anakin": {"url": HOSTED_MCP_URL}}
+    for skill in sorted(d for d in skills_dir.iterdir() if d.is_dir()):
+        rel = f"skills/{skill.name}/mcp.json"
+        config = load_json(rel)
+        if config is None:
+            continue
+        if config != expected:
+            err(f"{rel}: must be exactly {json.dumps(expected)} (Amp's flat per-skill format, hosted server)")
 
 
 def check_gemini_declares_api_key() -> None:
@@ -560,6 +585,7 @@ def main() -> int:
     check_directory_file_rules()
     check_manifests_agree()
     check_antigravity_plugin()
+    check_amp_skill_servers()
     check_gemini_declares_api_key()
     check_copilot_plugin()
     check_copilot_marketplace()
