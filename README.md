@@ -96,6 +96,25 @@ you to sign in to Anakin; there is no API key to copy. Installing the
 repository directly (`copilot plugin install Anakin-Inc/agent-skills`) gets the
 local server instead, which needs an [API key](#api-key).
 
+### Augment Code (Auggie CLI)
+
+```
+auggie plugin marketplace add Anakin-Inc/agent-skills
+auggie plugin install anakin@anakin
+```
+
+The Auggie plugin adds the five skills and connects to Anakin's hosted MCP
+server at `https://mcp.anakin.io/mcp`, so Auggie asks you to sign in to Anakin
+instead of taking an API key. Auggie reads `.augment-plugin/` ahead of
+`.claude-plugin/`, so this installs `augment/`, not the repository root.
+
+In the Augment VS Code extension, open **Settings** from the Augment panel's
+options menu and, in the **MCP** section, click **+ Add remote MCP**
+(Connection Type **HTTP**, URL `https://mcp.anakin.io/mcp`). To run the local
+server instead, click **+**, use the command `npx -y @anakin-io/mcp@0.4.1`, and
+set `ANAKIN_API_KEY` in the environment variables section (see
+[API key](#api-key)).
+
 ### Any MCP client
 
 The skills wrap the published MCP server, which works standalone:
@@ -109,7 +128,7 @@ plugin itself pins an exact version — see [Versioning](#versioning).
 
 ## API key
 
-The Claude, Antigravity and Copilot plugins sign in over OAuth and need no key.
+The Claude, Antigravity, Copilot and Auggie plugins sign in over OAuth and need no key.
 Every other platform runs the local server, which needs one.
 
 **Set this before using the plugin anywhere else.** All tools require an Anakin
@@ -133,7 +152,7 @@ loudly at startup beats failing confusingly mid-task.
 
 ## What's included
 
-**MCP server** — the Claude, Antigravity and Copilot plugins use the hosted
+**MCP server** — the Claude, Antigravity, Copilot and Auggie plugins use the hosted
 server at `https://mcp.anakin.io/mcp`. Every other platform runs
 [`@anakin-io/mcp`](https://github.com/Anakin-Inc/anakin-mcp) locally. Both have
 the same twenty-two tools and call `api.anakin.io`.
@@ -154,14 +173,14 @@ The plugin is five skills (Markdown instructions) and one MCP server entry. It
 has no hooks, commands, agents or scripts, and nothing in it runs on your
 machine.
 
-- **Where data goes.** The Claude, Antigravity and Copilot plugins connect only
+- **Where data goes.** The Claude, Antigravity, Copilot and Auggie plugins connect only
   to `https://mcp.anakin.io/mcp`, which calls `api.anakin.io`. The local server
   on other platforms calls `api.anakin.io` directly.
 - **What is sent.** The arguments of each tool call you or Claude make: URLs,
   search queries, extraction schemas, Wire action inputs, monitor settings and
   browser-task instructions. Anakin then fetches the pages or runs the actions
   you asked for on the public web or on the sites you target.
-- **Sign-in.** The Claude, Antigravity and Copilot plugins sign in with your
+- **Sign-in.** The Claude, Antigravity, Copilot and Auggie plugins sign in with your
   Anakin account over OAuth 2.1. Anakin creates an API key scoped to your
   account for that connection and stores it encrypted. The client never sees
   your Anakin password or the key.
@@ -188,7 +207,7 @@ details are in the
 
 ## Versioning
 
-The Claude, Antigravity and Copilot plugins use the hosted server, which Anakin
+The Claude, Antigravity, Copilot and Auggie plugins use the hosted server, which Anakin
 deploys and versions itself, so there is nothing to pin. Every other platform
 runs the local server, and for those the plugin pins an exact version
 (`@anakin-io/mcp@0.4.1`) rather than tracking `@latest`.
@@ -231,6 +250,9 @@ mcp_config.json            Antigravity MCP config (the hosted server)
                            manifest for installs of the repository root
 copilot/                   Copilot plugin (CLI + VS Code): manifest, .mcp.json
                            for the hosted server, generated copy of skills/
+.augment-plugin/           Auggie (Augment Code) marketplace index (installs augment/)
+augment/                   Auggie plugin: .augment-plugin/plugin.json, .mcp.json
+                           for the hosted server, generated copy of skills/
 assets/                    logo
 ```
 
@@ -245,6 +267,12 @@ server. Copilot also refuses a skills path outside the plugin directory, so
 `copilot/skills/` is a copy of `skills/`: edit `skills/`, then run
 `python3 scripts/sync_copilot_skills.py`. `scripts/validate.py` fails while the
 copy differs.
+
+Auggie (Augment Code's CLI) works the same way: it reads a plugin's MCP
+servers only from the `.mcp.json` at the plugin root and skips a `skills/`
+directory that resolves outside the plugin, so its plugin is `augment/`, with
+its own hosted `.mcp.json` and a second copy of `skills/` that the same sync
+script maintains.
 
 The local MCP server definition exists under two filenames because the
 platforms disagree on the convention: Grok reads `.mcp.json`, Cursor discovers
