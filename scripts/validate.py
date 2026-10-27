@@ -18,6 +18,9 @@ during a marketplace review:
   * the Copilot plugin in copilot/ points at the hosted endpoint, its skills/
     copy matches skills/, Copilot's marketplace entry installs it, and the
     Copilot manifests pass awesome-copilot's keyword and description rules
+  * the Auggie (Augment Code) plugin in augment/ points at the hosted
+    endpoint, its skills/ copy matches skills/, and the Auggie marketplace
+    entry installs it
 
 Run: python3 scripts/validate.py
 """
@@ -50,6 +53,9 @@ HOSTED_MCP_URL = "https://mcp.anakin.io/mcp"
 # The Copilot plugin's own directory. See scripts/sync_copilot_skills.py for
 # why it exists and carries a copy of skills/.
 COPILOT_DIR = "copilot"
+
+# The Auggie (Augment Code) plugin's own directory, for the same reasons.
+AUGMENT_DIR = "augment"
 
 # The manifests Copilot installs: the root plugin.json (identical to
 # .github/plugin/plugin.json) for repository installs, and copilot/plugin.json
@@ -300,6 +306,41 @@ def check_gemini_declares_api_key() -> None:
         err("gemini-extension.json: settings must declare envVar ANAKIN_API_KEY")
 
 
+def check_hosted_plugin_dir(plugin_dir: str) -> None:
+    """A plugin directory's .mcp.json runs the hosted server; its skills/ mirror skills/."""
+    config = load_json(f"{plugin_dir}/.mcp.json")
+    local = load_json(".mcp.json")
+    if config and local:
+        servers = config.get("mcpServers", {})
+        local_names = set(local.get("mcpServers", {}))
+        if set(servers) != local_names:
+            err(
+                f"{plugin_dir}/.mcp.json: server names {sorted(servers)} must match "
+                f".mcp.json {sorted(local_names)}"
+            )
+        for name, spec in servers.items():
+            if spec.get("type") != "http" or spec.get("url") != HOSTED_MCP_URL:
+                err(f"{plugin_dir}/.mcp.json: {name} must be type 'http' with url {HOSTED_MCP_URL}")
+            if "headers" in spec or "env" in spec:
+                err(
+                    f"{plugin_dir}/.mcp.json: {name} must not carry headers or env -- "
+                    f"the hosted server authenticates over OAuth"
+                )
+
+    source = skill_files(ROOT / "skills")
+    copy = skill_files(ROOT / plugin_dir / "skills")
+    stale = sorted(
+        str(rel)
+        for rel in source.keys() | copy.keys()
+        if source.get(rel) != copy.get(rel)
+    )
+    if stale:
+        err(
+            f"{plugin_dir}/skills/ differs from skills/ ({', '.join(stale)}) -- "
+            f"run python3 scripts/sync_copilot_skills.py"
+        )
+
+
 def check_copilot_plugin() -> None:
     """The Copilot plugin in copilot/ runs the hosted server and mirrors skills/.
 
@@ -320,37 +361,7 @@ def check_copilot_plugin() -> None:
                 f"(VS Code documents a plugin's MCP servers as living in that file)"
             )
 
-    config = load_json(f"{COPILOT_DIR}/.mcp.json")
-    local = load_json(".mcp.json")
-    if config and local:
-        servers = config.get("mcpServers", {})
-        local_names = set(local.get("mcpServers", {}))
-        if set(servers) != local_names:
-            err(
-                f"{COPILOT_DIR}/.mcp.json: server names {sorted(servers)} must match "
-                f".mcp.json {sorted(local_names)}"
-            )
-        for name, spec in servers.items():
-            if spec.get("type") != "http" or spec.get("url") != HOSTED_MCP_URL:
-                err(f"{COPILOT_DIR}/.mcp.json: {name} must be type 'http' with url {HOSTED_MCP_URL}")
-            if "headers" in spec or "env" in spec:
-                err(
-                    f"{COPILOT_DIR}/.mcp.json: {name} must not carry headers or env -- "
-                    f"the hosted server authenticates over OAuth"
-                )
-
-    source = skill_files(ROOT / "skills")
-    copy = skill_files(ROOT / COPILOT_DIR / "skills")
-    stale = sorted(
-        str(rel)
-        for rel in source.keys() | copy.keys()
-        if source.get(rel) != copy.get(rel)
-    )
-    if stale:
-        err(
-            f"{COPILOT_DIR}/skills/ differs from skills/ ({', '.join(stale)}) -- "
-            f"run python3 scripts/sync_copilot_skills.py"
-        )
+    check_hosted_plugin_dir(COPILOT_DIR)
 
 
 def check_copilot_marketplace() -> None:
@@ -367,6 +378,42 @@ def check_copilot_marketplace() -> None:
         err(".github/plugin/marketplace.json: no plugin named 'anakin'")
     elif entries["anakin"].get("source") != f"./{COPILOT_DIR}":
         err(f".github/plugin/marketplace.json: anakin source must be './{COPILOT_DIR}'")
+
+
+def check_augment_plugin() -> None:
+    """The Auggie plugin in augment/ runs the hosted server and mirrors skills/.
+
+    Auggie (Augment Code's CLI) reads .augment-plugin/ ahead of .claude-plugin/,
+    takes a plugin's MCP servers only from the .mcp.json at the plugin root
+    (a manifest's ``mcpServers`` is ignored), and skips a skills/ directory that
+    resolves outside the plugin. At the repository root it would run the local
+    server, so the Auggie plugin is its own directory, like copilot/.
+    """
+    check_hosted_plugin_dir(AUGMENT_DIR)
+    manifest = load_json(f"{AUGMENT_DIR}/.augment-plugin/plugin.json")
+    if manifest and "mcpServers" in manifest:
+        err(
+            f"{AUGMENT_DIR}/.augment-plugin/plugin.json: drop mcpServers -- Auggie "
+            f"only reads {AUGMENT_DIR}/.mcp.json"
+        )
+
+    market = load_json(".augment-plugin/marketplace.json")
+    if not market:
+        return
+    if market.get("name") != "anakin":
+        err(".augment-plugin/marketplace.json: name must be 'anakin' (install id anakin@anakin)")
+    entries = {p.get("name"): p for p in market.get("plugins", []) if isinstance(p, dict)}
+    if "anakin" not in entries:
+        err(".augment-plugin/marketplace.json: no plugin named 'anakin'")
+        return
+    entry = entries["anakin"]
+    if entry.get("source") != f"./{AUGMENT_DIR}":
+        err(f".augment-plugin/marketplace.json: anakin source must be './{AUGMENT_DIR}'")
+    if manifest and entry.get("version") != manifest.get("version"):
+        err(
+            f".augment-plugin/marketplace.json: anakin version {entry.get('version')!r} "
+            f"!= {AUGMENT_DIR}/.augment-plugin/plugin.json {manifest.get('version')!r}"
+        )
 
 
 def check_copilot_listing_rules() -> None:
@@ -402,6 +449,7 @@ def check_manifests_agree() -> None:
             ".codex-plugin/plugin.json",
             ".github/plugin/plugin.json",
             f"{COPILOT_DIR}/plugin.json",
+            f"{AUGMENT_DIR}/.augment-plugin/plugin.json",
             "gemini-extension.json",
         )
     }
@@ -564,6 +612,7 @@ def main() -> int:
     check_copilot_plugin()
     check_copilot_marketplace()
     check_copilot_listing_rules()
+    check_augment_plugin()
     check_cursor_schema()
     check_skills()
     check_tool_coverage()
