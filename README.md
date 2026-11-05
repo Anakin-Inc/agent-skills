@@ -115,6 +115,29 @@ server instead, click **+**, use the command `npx -y @anakin-io/mcp@0.4.1`, and
 set `ANAKIN_API_KEY` in the environment variables section (see
 [API key](#api-key)).
 
+### Amp
+
+Install the five skills from this repository:
+
+```
+amp skill add Anakin-Inc/agent-skills
+```
+
+Add `--global` to install them for every project on this machine
+(`~/.config/agents/skills/`). Each skill carries an `mcp.json` that connects
+Amp to Anakin's hosted MCP server at `https://mcp.anakin.io/mcp`. Amp keeps the
+tools hidden until it loads one of the skills, and the first connection opens
+an Anakin sign-in page in your browser; there is no API key to copy.
+
+To add only the MCP server, without the skills:
+
+```
+amp mcp add anakin https://mcp.anakin.io/mcp
+```
+
+A server you add yourself under the name `anakin` takes precedence over the
+one the skills define.
+
 ### Any MCP client
 
 The skills wrap the published MCP server, which works standalone:
@@ -128,7 +151,7 @@ plugin itself pins an exact version — see [Versioning](#versioning).
 
 ## API key
 
-The Claude, Antigravity, Copilot and Auggie plugins sign in over OAuth and need no key.
+The Claude, Antigravity, Copilot and Auggie plugins and the Amp skills sign in over OAuth and need no key.
 Every other platform runs the local server, which needs one.
 
 **Set this before using the plugin anywhere else.** All tools require an Anakin
@@ -152,7 +175,7 @@ loudly at startup beats failing confusingly mid-task.
 
 ## What's included
 
-**MCP server** — the Claude, Antigravity, Copilot and Auggie plugins use the hosted
+**MCP server** — the Claude, Antigravity, Copilot and Auggie plugins and the Amp skills use the hosted
 server at `https://mcp.anakin.io/mcp`. Every other platform runs
 [`@anakin-io/mcp`](https://github.com/Anakin-Inc/anakin-mcp) locally. Both have
 the same twenty-two tools and call `api.anakin.io`.
@@ -173,14 +196,14 @@ The plugin is five skills (Markdown instructions) and one MCP server entry. It
 has no hooks, commands, agents or scripts, and nothing in it runs on your
 machine.
 
-- **Where data goes.** The Claude, Antigravity, Copilot and Auggie plugins connect only
+- **Where data goes.** The Claude, Antigravity, Copilot and Auggie plugins and the Amp skills connect only
   to `https://mcp.anakin.io/mcp`, which calls `api.anakin.io`. The local server
   on other platforms calls `api.anakin.io` directly.
 - **What is sent.** The arguments of each tool call you or Claude make: URLs,
   search queries, extraction schemas, Wire action inputs, monitor settings and
   browser-task instructions. Anakin then fetches the pages or runs the actions
   you asked for on the public web or on the sites you target.
-- **Sign-in.** The Claude, Antigravity, Copilot and Auggie plugins sign in with your
+- **Sign-in.** The Claude, Antigravity, Copilot and Auggie plugins and the Amp skills sign in with your
   Anakin account over OAuth 2.1. Anakin creates an API key scoped to your
   account for that connection and stores it encrypted. The client never sees
   your Anakin password or the key.
@@ -207,7 +230,7 @@ details are in the
 
 ## Versioning
 
-The Claude, Antigravity, Copilot and Auggie plugins use the hosted server, which Anakin
+The Claude, Antigravity, Copilot and Auggie plugins and the Amp skills use the hosted server, which Anakin
 deploys and versions itself, so there is nothing to pin. Every other platform
 runs the local server, and for those the plugin pins an exact version
 (`@anakin-io/mcp@0.4.1`) rather than tracking `@latest`.
@@ -232,6 +255,8 @@ not mean nobody notices there is something to upgrade to.
 
 ```
 skills/                    source of truth for all platforms
+skills/*/mcp.json          Amp's per-skill MCP server (the hosted server, in
+                           Amp's flat format; identical in every skill)
 .mcp.json                  local MCP server definition (Grok, Codex, Copilot
                            installs of the repository root)
 mcp.json                   local MCP server definition (Cursor)
