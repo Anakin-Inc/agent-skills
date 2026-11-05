@@ -44,6 +44,31 @@ gemini extensions install https://github.com/Anakin-Inc/agent-skills
 Gemini CLI asks for your Anakin API key during the install and keeps it in your
 system keychain. To change it later, run `gemini extensions config anakin`.
 
+### Qwen Code
+
+Qwen Code installs Gemini CLI extensions, so it installs this repository
+directly:
+
+```
+qwen extensions install https://github.com/Anakin-Inc/agent-skills
+```
+
+Pick **anakin** when it asks which plugin to install. Qwen Code then asks for
+your Anakin API key, and installs the five skills and the local MCP server
+from the latest release.
+
+Qwen Code (tested 0.25.2 and 0.26.5) stores that key but does not yet pass it
+to the MCP server, so the server stops with `ANAKIN_API_KEY is not set`. Until
+that is fixed, add the key to `~/.qwen/.env`, which Qwen Code loads at startup:
+
+```
+ANAKIN_API_KEY=ask_your_key_here
+```
+
+Exporting `ANAKIN_API_KEY` in your shell before running `qwen` also works. Run
+`qwen extensions list` to check that the skills and the `anakin` server are
+installed.
+
 ### Antigravity
 
 Install the plugin from the command line:
@@ -141,6 +166,8 @@ client's environment, so set `ANAKIN_API_KEY` wherever that client reads
 environment variables from. Gemini CLI is the exception: it passes an
 extension only the variables its manifest declares, so `gemini-extension.json`
 declares `ANAKIN_API_KEY` as a setting and Gemini asks for it at install.
+Qwen Code reads the same manifest and asks too, but see
+[Qwen Code](#qwen-code) for where the key has to go for now.
 
 This is a correctness choice, not an omission. A config containing
 `"ANAKIN_API_KEY": "${ANAKIN_API_KEY}"` breaks on any client that does not
